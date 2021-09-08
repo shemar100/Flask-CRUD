@@ -1,9 +1,11 @@
-from flask import request, render_template, flash, redirect, url_for, g, Blueprint
+from flask import request, render_template, flash, redirect, url_for, g, Blueprint, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from my_app import app, db, login_manager
 from my_app.auth.models import User, RegistrationForm, LoginForm
 from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 from flask_dance.contrib.google import make_google_blueprint, google
+from functools import wraps
+from my_app.auth.models import AdminUserCreateForm, AdminUserUpdateForm
 
 auth = Blueprint('auth', __name__)
 facebook_blueprint = make_facebook_blueprint(scope='email', redirect_to='auth.facebook_login')
@@ -21,6 +23,14 @@ def load_user(id):
 def get_current_user():
     g.user = current_user
 
+
+def admin_login_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.admin:
+            return abort(403)
+        return(func(*args, **kwargs))
+    return decorated_view
 
 
 @auth.route('/')
@@ -116,3 +126,41 @@ def google_login():
     login_user(user)
     flash('Logged in as name=%s using Google login' % (resp.json()['name']), 'success')
     return redirect(request.args.get('next'), url_for('auth.home'))
+
+@auth.route('/admin')
+@login_required
+@admin_login_required
+def admin():
+    return render_template('admin-home.html')
+
+@auth.route('/admin/user-lists')
+@login_required
+@admin_login_required
+def users_list_admin():
+    users = User.query.all()
+    return render_template('users-list-admin.html', users=users)
+
+@auth.route('/admin/create-user', methods=['GET', 'POST'])
+def create_user():
+    form = AdminUserCreateForm()
+
+    if form.validate_on_submit():
+        username = request.form.data
+        password = request.form.data
+        admin = request.form.data
+
+        existing_username = User.query.filter_by(username=username).first()
+        if existing_username:
+            flash('This username has already been taken try another one.', 'warning')
+            return render_template('register.html')
+        user = User(username, password, admin)
+        db.session.add(user)
+        db.session.commit()
+        flash('New user created.', 'info')
+        return redirect(url_for('auth.users_list_admin'))
+    
+    if form.errors:
+        flash(form.errors, 'error')
+    
+    return render_template('user-create-admin.html', form=form)
+    
