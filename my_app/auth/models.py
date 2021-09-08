@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField, BooleanField
+from wtforms import TextField, PasswordField, BooleanField, StringFiled
+from wtforms.fields.core import StringField
 from wtforms.validators import InputRequired, EqualTo
 from my_app import db
 
@@ -47,3 +48,12 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = TextField('Username', [InputRequired()])
     password = PasswordField('Password', [InputRequired()])
+
+class AdminUserCreateForm(FlaskForm):
+    username = StringField('Username', [InputRequired()])
+    password = PasswordField('Password', [InputRequired()])
+    admin = BooleanField('Is Admin ?')
+
+class AdminUserUpdateForm(FlaskForm):
+    username = StringField('Username', [InputRequired()])
+    admin = BooleanField('Is Admin ?')
