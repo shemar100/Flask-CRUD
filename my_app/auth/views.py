@@ -163,4 +163,32 @@ def create_user():
         flash(form.errors, 'error')
     
     return render_template('user-create-admin.html', form=form)
-    
+
+@auth.route('/admin/update-user/<id>', methods=['GET', 'POST'])
+def user_update_admin(id):
+    user = User.query.get(id)
+    form = AdminUserUpdateForm(
+        username=user.username,
+        admin=user.admin
+    )
+
+    if form.validate_on_submit():
+        username = form.username.data,
+        admin = form.admin.data
+
+        User.query.filter_by(id=id).update({
+            'username': username,
+            'admin': admin
+        })
+
+        db.session.commit()
+        flash('User Updated.', 'success')
+        return redirect(url_for('auth.user_list_admin'))
+
+    if form.errors:
+        flash(form.errors, 'danger')
+
+    return render_template('user-update-admin.html', form=form)
+
+
+
