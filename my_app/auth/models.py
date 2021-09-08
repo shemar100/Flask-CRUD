@@ -49,7 +49,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', [InputRequired()])
 
 class AdminUserCreateForm(FlaskForm):
-    username = StringField('Username', [InputRequired()])
+    username = TextField('Username', [InputRequired()])
     password = PasswordField('Password', [InputRequired()])
     admin = BooleanField('Is Admin ?')
 

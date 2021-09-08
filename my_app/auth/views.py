@@ -141,13 +141,15 @@ def users_list_admin():
     return render_template('users-list-admin.html', users=users)
 
 @auth.route('/admin/create-user', methods=['GET', 'POST'])
+@login_required
+@admin_login_required
 def create_user():
     form = AdminUserCreateForm()
 
     if form.validate_on_submit():
-        username = request.form.data
-        password = request.form.data
-        admin = request.form.data
+        username = form.username.data
+        password = form.password.data
+        admin = form.admin.data
 
         existing_username = User.query.filter_by(username=username).first()
         if existing_username:
