@@ -165,6 +165,8 @@ def create_user():
     return render_template('user-create-admin.html', form=form)
 
 @auth.route('/admin/update-user/<id>', methods=['GET', 'POST'])
+@login_required
+@admin_login_required
 def user_update_admin(id):
     user = User.query.get(id)
     form = AdminUserUpdateForm(
@@ -189,6 +191,17 @@ def user_update_admin(id):
         flash(form.errors, 'danger')
 
     return render_template('user-update-admin.html', form=form)
+
+
+@auth.route('/admin/delete-user/<id>')
+@login_required
+@admin_login_required
+def user_delete_admin(id):
+    user = User.query.get(id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('User Deleted.', 'info')
+    return redirect(url_for('auth.users_list_admin'))
 
 
 
